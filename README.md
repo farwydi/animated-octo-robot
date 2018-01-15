@@ -1,2 +1,3 @@
-# animated-octo-robot
+# Grail
+
 Blockchain security notes
