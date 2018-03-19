@@ -38,29 +38,29 @@ class LoginPage ( wx.Frame ):
 		
 		bSizer6 = wx.BoxSizer( wx.HORIZONTAL )
 		
-		self.m_staticText5 = wx.StaticText( self.m_panel1, wx.ID_ANY, u"Login       ", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText5 = wx.StaticText( self.m_panel1, wx.ID_ANY, u"Login", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText5.Wrap( -1 )
-		bSizer6.Add( self.m_staticText5, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		bSizer6.Add( self.m_staticText5, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 		
 		self.login_field = wx.TextCtrl( self.m_panel1, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 200,-1 ), 0 )
 		self.login_field.SetMaxLength( 35 ) 
 		bSizer6.Add( self.login_field, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 5 )
 		
 		
-		bSizer8.Add( bSizer6, 1, wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		bSizer8.Add( bSizer6, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
 		
 		bSizer51 = wx.BoxSizer( wx.HORIZONTAL )
 		
 		self.m_staticText4 = wx.StaticText( self.m_panel1, wx.ID_ANY, u"Password", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText4.Wrap( -1 )
-		bSizer51.Add( self.m_staticText4, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+		bSizer51.Add( self.m_staticText4, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 		
 		self.password_field = wx.TextCtrl( self.m_panel1, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 200,-1 ), wx.TE_PASSWORD )
 		self.password_field.SetMaxLength( 16 ) 
 		bSizer51.Add( self.password_field, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL, 5 )
 		
 		
-		bSizer8.Add( bSizer51, 1, wx.ALIGN_CENTER_HORIZONTAL, 5 )
+		bSizer8.Add( bSizer51, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
 		
 		
 		self.m_panel1.SetSizer( bSizer8 )
@@ -75,17 +75,9 @@ class LoginPage ( wx.Frame ):
 		bSizer5.Add( self.reg_btn, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 5 )
 		
 		
-		bSizer5.Add( ( 0, 0), 1, wx.EXPAND, 5 )
-		
-		self.error_text = wx.StaticText( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.error_text.Wrap( -1 )
-		self.error_text.SetForegroundColour( wx.Colour( 255, 0, 0 ) )
-		
-		bSizer5.Add( self.error_text, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 5 )
-		
-		
 		self.SetSizer( bSizer5 )
 		self.Layout()
+		self.status_bar = self.CreateStatusBar( 1, wx.STB_SIZEGRIP, wx.ID_ANY )
 		
 		self.Centre( wx.BOTH )
 		

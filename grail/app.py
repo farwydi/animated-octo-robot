@@ -106,14 +106,15 @@ class LoginPageLogic(LoginPage):
             self.reg_btn.SetLabelText(self.M_LABEL_LOGIN)
 
     def on_unlock(self, event):
-        self.error_text.SetLabelText(wx.EmptyString)
+        # self.error_text.SetLabelText(wx.EmptyString)
+        self.status_bar.SetStatusText(wx.EmptyString)
         if self.page == 1:
             # PAGE CREATE
             pswd = self.password_field.GetValue()
             lgn = self.login_field.GetValue()
 
             if len(pswd) == 0 and len(lgn) == 0:
-                self.error_text.SetLabelText(self.M_ERROR_FIELD)
+                self.status_bar.SetStatusText(self.M_ERROR_FIELD)
             else:
                 # self.lock_btn.Disable()
                 # self.password_field.Disable()
@@ -130,7 +131,7 @@ class LoginPageLogic(LoginPage):
             pswd = self.password_field.GetValue()
 
             if len(pswd) == 0 and len(lgn) == 0:
-                self.error_text.SetLabelText(self.M_ERROR_FIELD)
+                self.status_bar.SetStatusText(self.M_ERROR_FIELD)
             else:
                 if os.path.isfile(lgn + '.grail'):
                     try:
@@ -138,9 +139,9 @@ class LoginPageLogic(LoginPage):
                         header, body = GrailProtocol.parse_grail(grail)
                         print(header)
                     except ValueError:
-                        self.error_text.SetLabelText(self.M_ERROR_PWD)
+                        self.status_bar.SetStatusText(self.M_ERROR_PWD)
                 else:
-                    self.error_text.SetLabelText(self.M_ERROR_REG)
+                    self.status_bar.SetStatusText(self.M_ERROR_REG)
 
     def passwd_no_eq(self):
         pass
