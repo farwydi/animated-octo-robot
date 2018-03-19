@@ -1,54 +1,69 @@
-# import asyncio
-#
-#
-# class GrailProtocol(asyncio.Protocol):
-#     def __init__(self):
-#         self.transport = None
-#
-#     def connection_made(self, transport):
-#         self.transport = transport
-#
-#     def data_received(self, data):
-#         print(data.decode())
-#         self.transport.write(data)
-#
-#
-# loop = asyncio.get_event_loop()
-# coro = loop.create_server(
-#     GrailProtocol,
-#     '127.0.0.1', 8181
-# )
-#
-# server = loop.run_until_complete(coro)
-#
-# try:
-#     loop.run_forever()
-# except KeyboardInterrupt:
-#     pass
-#
-# server.close()
-# loop.run_until_complete(server.wait_closed())
-# loop.close()
-
 import asyncio
+import os.path
+import sqlite3
 
-import asyncpg
+from protocol import GrailProtocol
 
-
-async def run(loop):
-    conn = await asyncpg.connect("postgres://postgres:y0dsqgfh0km@pg9devel.immo/tracker", loop=loop)
-    print("connect done")
-    values = await conn.fetch("""SELECT * FROM public.records LIMIT 50""")
-    print("f1")
-    values1 = await conn.fetch("""SELECT * FROM public.records LIMIT 25""")
-    print("fetch done")
-    for row in values:
-        print(row["id"])
-
-    await conn.close()
+SERVER_PORT = 61589
 
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(run(loop))
-print("aaaa")
-loop.close()
+async def handle_echo(reader, writer):
+    while True:
+        command = GrailProtocol.un_puck(await reader.read(15))
+
+        if len(command) == 0:
+            break
+
+        print(f"CMD {command}")
+
+        if command == "REG":
+            login = GrailProtocol.un_puck(await reader.read(35))
+            print(f"login: {login}")
+
+            c_db.execute("INSERT INTO users (login, user_public_key, secret_key) VALUES (?, 'a', 'b')", (login,))
+            conn_db.commit()
+
+    # addr = writer.get_extra_info('peername')
+    # print("Received %r from %r" % (message, addr))
+    #
+    # print("Send: %r" % message)
+    # writer.write(data)
+    # await writer.drain()
+    #
+    print("Close the client socket")
+    writer.close()
+
+
+if __name__ == '__main__':
+
+    if not os.path.isfile('users.db'):
+        conn_db = sqlite3.connect('users.db')
+        c_db = conn_db.cursor()
+        c_db.execute("""CREATE TABLE users (
+            id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+            login TEXT NOT NULL UNIQUE,
+            user_public_key TEXT NOT NULL UNIQUE,
+            secret_key TEXT NOT NULL UNIQUE
+        )""")
+        conn_db.commit()
+    else:
+        conn_db = sqlite3.connect('users.db')
+        c_db = conn_db.cursor()
+
+    loop = asyncio.get_event_loop()
+    coro = asyncio.start_server(handle_echo, '127.0.0.1', SERVER_PORT, loop=loop)
+    server = loop.run_until_complete(coro)
+
+    # Serve requests until Ctrl+C is pressed
+    print('Serving on {}'.format(server.sockets[0].getsockname()))
+    try:
+        loop.run_forever()
+    except KeyboardInterrupt:
+        pass
+
+    # Close the server
+    server.close()
+    loop.run_until_complete(server.wait_closed())
+    loop.close()
+
+    conn_db.close()

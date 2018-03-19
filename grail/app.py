@@ -1,91 +1,124 @@
 # -*- coding: utf-8 -*-
-import asyncio
-import base64
+
+import os.path
 
 import wx
-from Crypto.Cipher import AES
-from Crypto.Random import get_random_bytes
 
-from create_grail import CreateGrail
-from login_page import LoginPage
-
-VERSION_GRAIL = 1
-HASH_ALGORITHM = 'SHA1'
+from pages import LoginPage, MainFrame
+from protocol import GrailProtocol
 
 
-async def unlock_grail(grail_bin, psswd):
-    print("sleeping now")
+class MainFrameLogic(MainFrame):
 
-    await asyncio.sleep(2)
+    def __init__(self):
+        super().__init__(None)
 
-    print('is finished')
+        self.data_list.AppendTextColumn('ID', width=40)
+        self.data_list.AppendTextColumn('artist', width=170)
+        self.data_list.AppendTextColumn('title', width=260)
+        self.data_list.AppendTextColumn(u'Статус', width=80)
 
-
-class CreateGrailLogic(CreateGrail):
-
-    def create(self, event):
-        with open('grail.bin', 'wb') as grail:
-            header = f"GRAIL VERSION;{VERSION_GRAIL}\r\nHASH ALGORITHM;{HASH_ALGORITHM}\r\n\r\n"
-
-            header += "asdadas"
-
-            msg_text = 'test some plain text here'.rjust(32)
-            secret_key = '1234567890123456'  # create new & store somewhere safe
-
-            # key = get_random_bytes(16)
-            cipher = AES.new(secret_key, AES.MODE_EAX)
-            ciphertext, tag = cipher.encrypt_and_digest(data)
-
-            file_out = open("encrypted.bin", "wb")
-            [file_out.write(x) for x in (cipher.nonce, tag, ciphertext)]
-
-            print(decoded.strip())
-
-    def close(self, event):
-        self.Destroy()
+    def add_row(self, e):
+        self.data_list.AppendItem(["id", "artist", "title", "genre"])
 
 
 class LoginPageLogic(LoginPage):
+    M_LABEL_NEW = u"Регистрация в сети"
+    M_LABEL_LOGIN = u"Авторизация"
+    M_LABEL_UNLOCK = u"Для расшифровки введите пароль:"
+
+    M_BTN_REG = u"Регистрация"
+    M_BTN_UNLOCK = u"Расшифровать"
+    M_BTN_REG_PROC = u"Запрос принят..."
+
+    M_ERROR_FIELD = u"Не все поля заполнены"
+    M_ERROR_REG = u"Вы не зарегистрированы"
+    M_ERROR_PWD = u"Не верный пароль"
+
+    def __init__(self):
+        super().__init__(None)
+
+        self.page = None
+        self.page_login()
+
+    def on_reg(self, event):
+        if self.page == 1:
+            # PAGE CREATE
+            self.page_login()
+            self.reg_btn.SetLabelText(self.M_BTN_REG)
+            pass
+        elif self.page == 2:
+            # PAGE LOGIN
+            self.page_create()
+            self.reg_btn.SetLabelText(self.M_LABEL_LOGIN)
 
     def on_unlock(self, event):
-        self.m_textCtrl2.Disable()
-        self.m_button2.Disable()
-        self.m_button2.SetLabelText(u"Расшифровка...")
+        self.error_text.SetLabelText(wx.EmptyString)
+        if self.page == 1:
+            # PAGE CREATE
+            pswd = self.password_field.GetValue()
+            lgn = self.login_field.GetValue()
 
-        pswd = self.m_textCtrl2.GetValue()
+            if len(pswd) == 0 and len(lgn) == 0:
+                self.error_text.SetLabelText(self.M_ERROR_FIELD)
+            else:
+                # self.lock_btn.Disable()
+                # self.password_field.Disable()
+                # self.login_field.Disable()
+                # self.reg_btn.Disable()
+                self.lock_btn.SetLabelText(self.M_BTN_REG_PROC)
+
+                GrailProtocol.create_new_grail(lgn, pswd)
+
+        elif self.page == 2:
+            # PAGE LOGIN
+
+            lgn = self.login_field.GetValue()
+            pswd = self.password_field.GetValue()
+
+            if len(pswd) == 0 and len(lgn) == 0:
+                self.error_text.SetLabelText(self.M_ERROR_FIELD)
+            else:
+                if os.path.isfile(lgn + '.grail'):
+                    try:
+                        grail = GrailProtocol.unlock_grail(lgn, pswd)
+                        header, body = GrailProtocol.parse_grail(grail)
+                        print(header)
+                    except ValueError:
+                        self.error_text.SetLabelText(self.M_ERROR_PWD)
+                else:
+                    self.error_text.SetLabelText(self.M_ERROR_REG)
 
     def passwd_no_eq(self):
-        self.m_staticText3.SetLabel(u"Неверный пароль")
+        pass
+        # self.m_staticText3.SetLabel(u"Неверный пароль")
 
+    def page_create(self):
+        self.page = 1
 
-async def app_runner():
-    print('running...')
+        self.title_text.SetLabelText(self.M_LABEL_NEW)
+        self.lock_btn.SetLabelText(self.M_BTN_REG)
+        self.login_field.Enable()
+        self.password_field.Enable()
 
-    ung = unlock_grail(None, None)
+        self.Layout()
 
-    print('skied...')
+    def page_login(self):
+        self.page = 2
 
-    wnd = LoginPageLogic(None)
-    wnd.Show(True)
+        self.title_text.SetLabelText(self.M_LABEL_LOGIN)
+        self.lock_btn.SetLabelText(self.M_BTN_UNLOCK)
+        self.login_field.Enable()
+        self.password_field.Enable()
 
-    await ung
+        self.Layout()
 
 
 if __name__ == "__main__":
     app = wx.App()
 
-    try:
-        with open('grail.bin', 'rb') as grail:
-            g = grail.read()
-
-            loop = asyncio.get_event_loop()
-            loop.run_until_complete(app_runner())
-            loop.close()
-    except FileNotFoundError:
-        print("file not find")
-        dcg = CreateGrailLogic(None)
-        #dcg.Show()
-        wnd = LoginPageLogic(None)
-        wnd.Show(True)
+    # wnd = LoginPageLogic()
+    wnd = MainFrameLogic()
+    wnd.Show(True)
 
     app.MainLoop()
