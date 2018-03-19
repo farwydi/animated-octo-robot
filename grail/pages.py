@@ -26,7 +26,7 @@ class LoginPage ( wx.Frame ):
 		
 		bSizer5 = wx.BoxSizer( wx.VERTICAL )
 		
-		self.m_bitmap1 = wx.StaticBitmap( self, wx.ID_ANY, wx.Bitmap( u"../../img/mask.png", wx.BITMAP_TYPE_ANY ), wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_bitmap1 = wx.StaticBitmap( self, wx.ID_ANY, wx.Bitmap( u"../img/mask.png", wx.BITMAP_TYPE_ANY ), wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer5.Add( self.m_bitmap1, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 25 )
 		
 		self.title_text = wx.StaticText( self, wx.ID_ANY, u"Для расшифровки введите пароль:", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -38,7 +38,7 @@ class LoginPage ( wx.Frame ):
 		
 		bSizer6 = wx.BoxSizer( wx.HORIZONTAL )
 		
-		self.m_staticText5 = wx.StaticText( self.m_panel1, wx.ID_ANY, u"Login      ", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText5 = wx.StaticText( self.m_panel1, wx.ID_ANY, u"Login       ", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText5.Wrap( -1 )
 		bSizer6.Add( self.m_staticText5, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
 		
@@ -124,13 +124,13 @@ class MainFrame ( wx.Frame ):
 		self.data_list = wx.dataview.DataViewListCtrl( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer12.Add( self.data_list, 1, wx.EXPAND|wx.TOP|wx.RIGHT|wx.LEFT, 5 )
 		
-		bSizer16 = wx.BoxSizer( wx.HORIZONTAL )
+		bSizer111 = wx.BoxSizer( wx.HORIZONTAL )
 		
-		self.m_button8 = wx.Button( self, wx.ID_ANY, u"Добавить запись", wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer16.Add( self.m_button8, 0, wx.ALL, 5 )
+		self.push_btn = wx.Button( self, wx.ID_ANY, u"Push (0)", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer111.Add( self.push_btn, 0, 0, 5 )
 		
 		
-		bSizer12.Add( bSizer16, 0, 0, 5 )
+		bSizer12.Add( bSizer111, 0, wx.ALL, 5 )
 		
 		
 		bSizer11.Add( bSizer12, 1, wx.EXPAND, 5 )
@@ -141,12 +141,11 @@ class MainFrame ( wx.Frame ):
 		self.m_panel2 = wx.Panel( self.m_auinotebook1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer17 = wx.BoxSizer( wx.VERTICAL )
 		
-		self.m_staticText6 = wx.StaticText( self.m_panel2, wx.ID_ANY, u"MyLabel", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText6.Wrap( -1 )
-		bSizer17.Add( self.m_staticText6, 0, wx.ALL|wx.EXPAND, 5 )
+		self.commit_btn = wx.Button( self.m_panel2, wx.ID_ANY, u"Commit (0)", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer17.Add( self.commit_btn, 0, wx.ALL, 5 )
 		
-		self.m_textCtrl8 = wx.TextCtrl( self.m_panel2, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer17.Add( self.m_textCtrl8, 1, wx.ALL|wx.EXPAND, 5 )
+		self.grail_text_ctrl = wx.TextCtrl( self.m_panel2, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_MULTILINE )
+		bSizer17.Add( self.grail_text_ctrl, 1, wx.EXPAND|wx.BOTTOM|wx.RIGHT|wx.LEFT, 5 )
 		
 		
 		self.m_panel2.SetSizer( bSizer17 )
@@ -164,7 +163,7 @@ class MainFrame ( wx.Frame ):
 		self.m_panel3.SetSizer( bSizer19 )
 		self.m_panel3.Layout()
 		bSizer19.Fit( self.m_panel3 )
-		self.m_auinotebook1.AddPage( self.m_panel3, u"Изменения", False, wx.NullBitmap )
+		self.m_auinotebook1.AddPage( self.m_panel3, u"Diff", False, wx.NullBitmap )
 		
 		bSizer13.Add( self.m_auinotebook1, 1, wx.EXPAND |wx.ALL, 5 )
 		
@@ -174,18 +173,23 @@ class MainFrame ( wx.Frame ):
 		
 		self.SetSizer( bSizer11 )
 		self.Layout()
+		self.status_bar = self.CreateStatusBar( 1, wx.STB_SIZEGRIP, wx.ID_ANY )
 		
 		self.Centre( wx.BOTH )
 		
 		# Connect Events
-		self.m_button8.Bind( wx.EVT_BUTTON, self.add_row )
+		self.commit_btn.Bind( wx.EVT_BUTTON, self.commit )
+		self.grail_text_ctrl.Bind( wx.EVT_TEXT, self.grail_event )
 	
 	def __del__( self ):
 		pass
 	
 	
 	# Virtual event handlers, overide them in your derived class
-	def add_row( self, event ):
+	def commit( self, event ):
+		event.Skip()
+	
+	def grail_event( self, event ):
 		event.Skip()
 	
 

@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
-
 from Crypto.Cipher import AES
 
 
-class GrailProtocol:
-    VERSION_GRAIL = 1
+class GrailException(Exception):
+    pass
+
+
+class GrailProtocol(object):
+    VERSION_GRAIL = '2'
     HASH_ALGORITHM = 'SHA1'
-    HEADER = f"GRAIL VERSION;{VERSION_GRAIL}\rHASH ALGORITHM;{HASH_ALGORITHM}\n"
+    HEADER = f"VERSION;{VERSION_GRAIL}\nALGORITHM;{HASH_ALGORITHM}"
 
     @staticmethod
     def pack(cmd, size=15):
@@ -15,28 +18,31 @@ class GrailProtocol:
         return cmd.encode()
 
     @staticmethod
-    def un_puck(bytes_cmd):
+    def un_pack(bytes_cmd):
         bytes_cmd = bytes_cmd.split(b'\0', 1)[0]
         bytes_cmd = bytes_cmd.decode()
         return bytes_cmd
 
     @staticmethod
-    def create_new_grail(login, key):
+    def create_new_grail(login, key, header=HEADER, body=list()):
         if len(key) > 16:
-            print("PSWD Vere big")
+            raise GrailException("password vere big")
 
         key = GrailProtocol.pack(key, 16)
         cipher = AES.new(key, AES.MODE_EAX)
 
         with open(login + ".grail", "wb") as grail:
-            grail_protected, tag = cipher.encrypt_and_digest(GrailProtocol.HEADER.encode())
+            raw = header + "\n\n" + "\n".join(body)
 
-            [grail.write(x) for x in (cipher.nonce, tag, grail_protected)]
+            grail_protected, tag = cipher.encrypt_and_digest(raw.encode())
+
+            for wd in (cipher.nonce, tag, grail_protected):
+                grail.write(wd)
 
     @staticmethod
     def unlock_grail(login, key):
         if len(key) > 16:
-            print("PSWD Vere big")
+            raise GrailException("password vere big")
 
         key = GrailProtocol.pack(key, 16)
 
@@ -50,10 +56,14 @@ class GrailProtocol:
 
     @staticmethod
     def parse_grail(grail):
-        header, body = grail.split("\n")
-        header = header.split("\r")
+        header_raw, body = grail.split("\n\n")
+        header = dict()
+        for h_r in header_raw.split("\n"):
+            hh = h_r.split(";")
+            header.update({hh[0]: hh[1]})
 
-        for i, _ in enumerate(header):
-            header[i] = header[i].split(";")
+        return header, body.split("\n")
 
-        return header, body
+    @staticmethod
+    def pack_header(header):
+        return f"VERSION;{header['VERSION']}\nALGORITHM;{header['ALGORITHM']}"

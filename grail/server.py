@@ -9,7 +9,7 @@ SERVER_PORT = 61589
 
 async def handle_echo(reader, writer):
     while True:
-        command = GrailProtocol.un_puck(await reader.read(15))
+        command = GrailProtocol.un_pack(await reader.read(15))
 
         if len(command) == 0:
             break
@@ -17,7 +17,7 @@ async def handle_echo(reader, writer):
         print(f"CMD {command}")
 
         if command == "REG":
-            login = GrailProtocol.un_puck(await reader.read(35))
+            login = GrailProtocol.un_pack(await reader.read(35))
             print(f"login: {login}")
 
             c_db.execute("INSERT INTO users (login, user_public_key, secret_key) VALUES (?, 'a', 'b')", (login,))
