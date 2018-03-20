@@ -3,8 +3,12 @@ import os.path
 import random
 import string
 import unittest
-
+import tempfile
 from protocol import GrailProtocol, GrailException
+
+
+def gen_random_string(N=10):
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=N))
 
 
 class TestProtocol(unittest.TestCase):
@@ -24,14 +28,8 @@ class TestProtocol(unittest.TestCase):
             self.assertEqual(GrailProtocol.un_pack(b_cmd), commands_true[i])
 
     def test_grail(self):
-
-        def gen_random_string(N=10):
-            return ''.join(random.choices(string.ascii_uppercase + string.digits, k=N))
-
         # Получаем случайное имя для файла.
-        login = gen_random_string()
-        while os.path.exists(login + ".grail"):
-            login = gen_random_string()
+        login = next(tempfile._get_candidate_names())
 
         # Ключ не может быть больше 16 символов.
         key = gen_random_string(25)

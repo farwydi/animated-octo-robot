@@ -1,6 +1,7 @@
 import base64
 import hashlib
 import os
+from collections import deque
 
 import diff_match_patch as dmp_module
 
@@ -8,13 +9,14 @@ from protocol import GrailProtocol as gp, GrailException
 
 
 class Grail(object):
-    def __init__(self):
+    def __init__(self, default_path=""):
         self.header = None
         self.body = []
         self._init = False
         self.login = None
         self.key = None
         self.prev_hash = None
+        self.default_path = default_path
 
     def _get_last_hash(self):
         return self.prev_hash.encode("ascii")
@@ -44,28 +46,39 @@ class Grail(object):
         self.body.append((encode_record.decode('ascii'), self.prev_hash))
 
     def create(self, login, key):
-        if os.path.exists(login + ".grail"):
+        self.login = login
+
+        if os.path.exists(self._get_grail_path()):
+            self.login = None
             raise GrailException("file exist")
 
-        gp.create_new_grail(login, key)
+        gp.create_new_grail(login, key, path=self.default_path)
 
         self.open(login, key)
 
     def open(self, login, key):
-        if not os.path.exists(login + ".grail"):
+        self.login = login
+
+        if not os.path.exists(self._get_grail_path()):
+            self.login = None
             raise GrailException("file not find")
 
-        self.header, self.body = gp.parse_grail(gp.unlock_grail(login, key))
+        self.header, self.body = gp.parse_grail(gp.unlock_grail(login, key, path=self.default_path))
 
-        _, self.prev_hash = self.body.pop()
+        d_body = deque(self.body)
+        _, self.prev_hash = d_body.popleft()
+        self.body = list(d_body)
 
         self.login = login
         self.key = key
 
         self._init = True
 
+    def get_header_hash(self):
+        return hashlib.sha1(gp.pack_header(self.header).encode("ascii")).hexdigest()
+
     def valid(self):
-        prev = hashlib.sha1(gp.pack_header(self.header).encode("ascii")).hexdigest()
+        prev = self.get_header_hash()
 
         for record, b_hash in self.body:
             next_hash = hashlib.sha1()
@@ -108,11 +121,20 @@ class Grail(object):
 
         return grail
 
+    def get_diff(self, idx):
+        last_diff = self.body[idx][0]
+        decode_last_diff = base64.b64decode(last_diff)
+        return decode_last_diff.decode('ascii')
+
+
+    def _get_grail_path(self):
+        return os.path.join(self.default_path, (self.login + ".grail"))
+
     def save(self, force=True):
         if not self._init:
             raise GrailException("not init")
 
-        if force and os.path.exists(self.login + ".grail"):
-            os.unlink(self.login + ".grail")
+        if force and os.path.exists(self._get_grail_path()):
+            os.unlink(self._get_grail_path())
 
-        gp.create_new_grail(self.login, self.key, gp.pack_header(self.header), self.body)
+        gp.create_new_grail(self.login, self.key, gp.pack_header(self.header), self.body, path=self.default_path)

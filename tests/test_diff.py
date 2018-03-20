@@ -1,5 +1,6 @@
-import unittest
 import base64
+import unittest
+
 import diff_match_patch as dmp_module
 
 

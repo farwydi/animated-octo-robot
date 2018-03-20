@@ -9,7 +9,6 @@
 
 import wx
 import wx.xrc
-import wx.dataview
 import wx.aui
 
 ###########################################################################
@@ -104,7 +103,7 @@ class LoginPage ( wx.Frame ):
 class MainFrame ( wx.Frame ):
 	
 	def __init__( self, parent ):
-		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Grail", pos = wx.DefaultPosition, size = wx.Size( 1366,768 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Grail", pos = wx.DefaultPosition, size = wx.Size( 1024,768 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 		
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 		self.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_3DLIGHT ) )
@@ -113,8 +112,8 @@ class MainFrame ( wx.Frame ):
 		
 		bSizer12 = wx.BoxSizer( wx.VERTICAL )
 		
-		self.data_list = wx.dataview.DataViewListCtrl( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer12.Add( self.data_list, 1, wx.EXPAND|wx.TOP|wx.RIGHT|wx.LEFT, 5 )
+		self.data_list = wx.ListCtrl( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_LIST )
+		bSizer12.Add( self.data_list, 1, wx.ALL|wx.EXPAND, 5 )
 		
 		bSizer111 = wx.BoxSizer( wx.HORIZONTAL )
 		
@@ -129,7 +128,7 @@ class MainFrame ( wx.Frame ):
 		
 		bSizer13 = wx.BoxSizer( wx.VERTICAL )
 		
-		self.m_auinotebook1 = wx.aui.AuiNotebook( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.aui.AUI_NB_BOTTOM )
+		self.m_auinotebook1 = wx.aui.AuiNotebook( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( 600,-1 ), wx.aui.AUI_NB_BOTTOM )
 		self.m_panel2 = wx.Panel( self.m_auinotebook1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer17 = wx.BoxSizer( wx.VERTICAL )
 		
@@ -147,9 +146,9 @@ class MainFrame ( wx.Frame ):
 		self.m_panel3 = wx.Panel( self.m_auinotebook1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer19 = wx.BoxSizer( wx.VERTICAL )
 		
-		# WARNING: wxPython code generation isn't supported for this widget yet.
-		self.m_scintilla2 = wx.Window( self.m_panel3 )
-		bSizer19.Add( self.m_scintilla2, 1, wx.EXPAND |wx.ALL, 5 )
+		self.diff_text = wx.StaticText( self.m_panel3, wx.ID_ANY, u"MyLabel", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.diff_text.Wrap( -1 )
+		bSizer19.Add( self.diff_text, 0, wx.ALL, 5 )
 		
 		
 		self.m_panel3.SetSizer( bSizer19 )
@@ -170,18 +169,26 @@ class MainFrame ( wx.Frame ):
 		self.Centre( wx.BOTH )
 		
 		# Connect Events
+		self.data_list.Bind( wx.EVT_LIST_ITEM_SELECTED, self.selected )
+		self.push_btn.Bind( wx.EVT_BUTTON, self.push )
 		self.commit_btn.Bind( wx.EVT_BUTTON, self.commit )
-		self.grail_text_ctrl.Bind( wx.EVT_TEXT, self.grail_event )
+		self.grail_text_ctrl.Bind( wx.EVT_TEXT, self.grail_update )
 	
 	def __del__( self ):
 		pass
 	
 	
 	# Virtual event handlers, overide them in your derived class
+	def selected( self, event ):
+		event.Skip()
+	
+	def push( self, event ):
+		event.Skip()
+	
 	def commit( self, event ):
 		event.Skip()
 	
-	def grail_event( self, event ):
+	def grail_update( self, event ):
 		event.Skip()
 	
 

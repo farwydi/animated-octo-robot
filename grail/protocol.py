@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import hashlib
+import os.path
 
 from Crypto.Cipher import AES
 
@@ -26,14 +27,14 @@ class GrailProtocol(object):
         return bytes_cmd
 
     @staticmethod
-    def create_new_grail(login, key, header=HEADER, body=list()):
+    def create_new_grail(login, key, header=HEADER, body=list(), path=""):
         if len(key) > 16:
             raise GrailException("password vere big")
 
         key = GrailProtocol.pack(key, 16)
         cipher = AES.new(key, AES.MODE_EAX)
 
-        with open(login + ".grail", "wb") as grail:
+        with open(os.path.join(path, (login + ".grail")), "wb") as grail:
             hash_prev = hashlib.sha1()
             hash_prev.update(header.encode("ascii"))
 
@@ -48,13 +49,13 @@ class GrailProtocol(object):
                 grail.write(wd)
 
     @staticmethod
-    def unlock_grail(login, key):
+    def unlock_grail(login, key, path=""):
         if len(key) > 16:
             raise GrailException("password vere big")
 
         key = GrailProtocol.pack(key, 16)
 
-        with open(login + ".grail", "rb") as grail:
+        with open(os.path.join(path, (login + ".grail")), "rb") as grail:
             nonce, tag, grail_extract = [grail.read(x) for x in (16, 16, -1)]
 
             cipher = AES.new(key, AES.MODE_EAX, nonce)

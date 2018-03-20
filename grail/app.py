@@ -4,38 +4,54 @@ import os.path
 
 import wx
 
+import grail
 from pages import LoginPage, MainFrame
-from protocol import GrailProtocol
+from protocol import GrailProtocol, GrailException
+
+LOGIN = ''
+PASSWORD = ''
 
 
 class MainFrameLogic(MainFrame):
 
-    def __init__(self, grail_body):
+    def __init__(self, grail_login, grail_key):
         super().__init__(None)
+
+        self.login = grail_login
+        self.key = grail_key
+
+        self.grail = grail.Grail()
+        self.grail.open(self.login, self.key)
 
         self.data = []
         self._change_counter = 0
-        self._grail = "asd"
-        self.grail_text_ctrl.SetLabelText(self._grail)
+        self._push_counter = 0
+
+        self.grail_text_ctrl.SetLabelText(self.grail.get())
         self.commit_btn.Disable()
         self.push_btn.Disable()
 
-        self.data_list.AppendTextColumn('ID', width=40)
-        self.data_list.AppendTextColumn('artist', width=170)
-        self.data_list.AppendTextColumn('Title', width=260)
-        self.data_list.AppendTextColumn(u'Статус', width=80)
+        self.data_list.InsertColumn(0, 'ID')
+        self.data_list.InsertColumn(1, 'Hash', width=300)
 
-        for item in self.data:
-            self.data_list.AppendItem(item)
+        self.push_row(self.grail.get_header_hash())
 
-    def grail_event(self, e):
+        for _, hash in self.grail.body:
+            self.push_row(hash)
+
+        self.grail_text_ctrl.SetValue(self.grail.get())
+
+        self._selected = -1
+        self.diff_text.SetLabel(self.grail.get_diff(self._selected))
+
+    def grail_update(self, e):
         diff = e.GetString()
         self._change_counter = 0
 
-        match = len(self._grail) >= len(diff)
+        match = len(self.grail.get()) >= len(diff)
 
-        max_diff = self._grail if match else diff
-        watch_diff = diff if match else self._grail
+        max_diff = self.grail.get() if match else diff
+        watch_diff = diff if match else self.grail.get()
 
         for i, litter in enumerate(max_diff):
             try:
@@ -51,21 +67,41 @@ class MainFrameLogic(MainFrame):
 
         self.commit_btn.SetLabelText(f"Commit ({self._change_counter})")
 
-    def commit(self, event):
+    def selected(self, event):
         pass
 
+    def commit(self, event):
+        try:
+            self.grail.update(self.grail_text_ctrl.GetValue())
+
+            diff, hash_str = self.grail.body[-1]
+
+            id = self.push_row(hash_str)
+
+            self.status_bar.SetStatusText(f'Запись #{id} добавлена, ожидается подтверждение клиентом.')
+
+            self.commit_btn.Disable()
+            self.commit_btn.SetLabelText("Commit (0)")
+
+            self._push_counter += 1
+            self.push_btn.Enable()
+            self.push_btn.SetLabelText(f"Push ({self._push_counter})")
+        except GrailException as gp:
+            self.status_bar.SetStatusText(str(gp))
+
+    def push(self, event):
+        self.grail.save()
+
+        self._push_counter = 0
+        self.push_btn.Disable()
+        self.push_btn.SetLabelText("Push (0)")
+
     def push_row(self, item):
-        id = len(self.data)
-        item.insert(0, id)
         self.data.append(item)
-        self.data_list.AppendItem(item)
 
-        return id
+        index = self.data_list.InsertItem(self.data_list.GetItemCount(), item)
 
-    def add_row(self, e):
-        id = self.push_row(["artist", "title", "genre"])
-
-        self.status_bar.SetStatusText(f'Запись #{id} добавлена, ожидается подтверждение клиентом.')
+        return index
 
 
 class LoginPageLogic(LoginPage):
@@ -99,7 +135,6 @@ class LoginPageLogic(LoginPage):
             self.reg_btn.SetLabelText(self.M_LABEL_LOGIN)
 
     def on_unlock(self, event):
-        # self.error_text.SetLabelText(wx.EmptyString)
         self.status_bar.SetStatusText(wx.EmptyString)
         if self.page == 1:
             # PAGE CREATE
@@ -109,13 +144,15 @@ class LoginPageLogic(LoginPage):
             if len(pswd) == 0 and len(lgn) == 0:
                 self.status_bar.SetStatusText(self.M_ERROR_FIELD)
             else:
-                # self.lock_btn.Disable()
-                # self.password_field.Disable()
-                # self.login_field.Disable()
-                # self.reg_btn.Disable()
-                self.lock_btn.SetLabelText(self.M_BTN_REG_PROC)
+                try:
+                    GrailProtocol.create_new_grail(lgn, pswd)
 
-                GrailProtocol.create_new_grail(lgn, pswd)
+                    wnd = MainFrameLogic(lgn, pswd)
+                    wnd.Show()
+
+                    self.Close()
+                except GrailException as gx:
+                    self.status_bar.SetStatusText(str(gx))
 
         elif self.page == 2:
             # PAGE LOGIN
@@ -126,11 +163,14 @@ class LoginPageLogic(LoginPage):
             if len(pswd) == 0 and len(lgn) == 0:
                 self.status_bar.SetStatusText(self.M_ERROR_FIELD)
             else:
-                if os.path.isfile(lgn + '.grail'):
+                if os.path.exists(lgn + '.grail'):
                     try:
-                        grail = GrailProtocol.unlock_grail(lgn, pswd)
-                        header, body = GrailProtocol.parse_grail(grail)
-                        print(header)
+                        GrailProtocol.unlock_grail(lgn, pswd)
+
+                        wnd = MainFrameLogic(lgn, pswd)
+                        wnd.Show()
+
+                        self.Close()
                     except ValueError:
                         self.status_bar.SetStatusText(self.M_ERROR_PWD)
                 else:
@@ -165,7 +205,6 @@ if __name__ == "__main__":
     app = wx.App()
 
     wnd = LoginPageLogic()
-    # wnd = MainFrameLogic()
-    wnd.Show(True)
+    wnd.Show()
 
     app.MainLoop()

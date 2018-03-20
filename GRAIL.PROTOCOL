@@ -1,7 +1,5 @@
 VERSION;1
 ALGORITHM;SHA1
-# CREATE;1215120515
-# AUTHOR;DEX
 ...
 
 ;{header hash}
@@ -9,3 +7,13 @@ ALGORITHM;SHA1
 {base64 diff};{up hash + diff hash}
 {base64 diff};{up hash + diff hash}
 ...
+
+=== Example ===
+VERSION;2
+ALGORITHM;SHA1
+
+;cc37f87e923b6a6a3098c5fad717e449d4d2bb4b
+QEAgLTAsMCArMSwzIEBACithc2QK;faa0c13af261e105c2b82c49c55dd883efa1ea4a
+QEAgLTEsMyArMSw3IEBACiBhc2QKK2ZzZjMK;d27bf1f8a323cf48f9a1247a3531ff51c6a46db0
+QEAgLTEsNyArMSwzIEBACiBhc2QKLWZzZjMK;4e76499480e071c2bc8644d63d71ac504ea53403
+QEAgLTEsMyArMSwzIEBACi1hc2QKKzB4MQo=;ec77ace2ae616f7e2604e885759bded74ccacab2
