@@ -122,10 +122,15 @@ class Grail(object):
         return grail
 
     def get_diff(self, idx):
-        last_diff = self.body[idx][0]
-        decode_last_diff = base64.b64decode(last_diff)
-        return decode_last_diff.decode('ascii')
+        if idx == -1:
+            return ""
 
+        try:
+            last_diff = self.body[idx][0]
+            decode_last_diff = base64.b64decode(last_diff)
+            return decode_last_diff.decode('ascii')
+        except IndexError:
+            return None
 
     def _get_grail_path(self):
         return os.path.join(self.default_path, (self.login + ".grail"))

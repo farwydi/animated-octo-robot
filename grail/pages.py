@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- 
 
 ###########################################################################
-## Python code generated with wxFormBuilder (version Jan 23 2018)
+## Python code generated with wxFormBuilder (version Feb 19 2018)
 ## http://www.wxformbuilder.org/
 ##
 ## PLEASE DO *NOT* EDIT THIS FILE!
@@ -26,7 +26,7 @@ class LoginPage ( wx.Frame ):
 		bSizer5 = wx.BoxSizer( wx.VERTICAL )
 		
 		self.m_bitmap1 = wx.StaticBitmap( self, wx.ID_ANY, wx.Bitmap( u"../img/mask.png", wx.BITMAP_TYPE_ANY ), wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer5.Add( self.m_bitmap1, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, 25 )
+		bSizer5.Add( self.m_bitmap1, 0, wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, 25 )
 		
 		self.title_text = wx.StaticText( self, wx.ID_ANY, u"Для расшифровки введите пароль:", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.title_text.Wrap( -1 )
@@ -112,7 +112,7 @@ class MainFrame ( wx.Frame ):
 		
 		bSizer12 = wx.BoxSizer( wx.VERTICAL )
 		
-		self.data_list = wx.ListCtrl( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_LIST )
+		self.data_list = wx.ListCtrl( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_LIST|wx.LC_REPORT )
 		bSizer12.Add( self.data_list, 1, wx.ALL|wx.EXPAND, 5 )
 		
 		bSizer111 = wx.BoxSizer( wx.HORIZONTAL )

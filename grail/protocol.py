@@ -2,7 +2,7 @@
 import hashlib
 import os.path
 
-from Crypto.Cipher import AES
+from Cryptodome.Cipher import AES
 
 
 class GrailException(Exception):

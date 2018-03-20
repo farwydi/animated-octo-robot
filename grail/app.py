@@ -100,6 +100,7 @@ class MainFrameLogic(MainFrame):
         self.data.append(item)
 
         index = self.data_list.InsertItem(self.data_list.GetItemCount(), item)
+        # self.data_list.
 
         return index
 
