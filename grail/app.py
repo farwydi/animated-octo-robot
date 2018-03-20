@@ -8,9 +8,6 @@ import grail
 from pages import LoginPage, MainFrame
 from protocol import GrailProtocol, GrailException
 
-LOGIN = ''
-PASSWORD = ''
-
 
 class MainFrameLogic(MainFrame):
 
