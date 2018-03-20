@@ -3,9 +3,7 @@
 import os.path
 
 import wx
-import wx.dataview as dv
 
-from custome_render import DRCustomRenderer
 from pages import LoginPage, MainFrame
 from protocol import GrailProtocol
 
@@ -24,12 +22,7 @@ class MainFrameLogic(MainFrame):
 
         self.data_list.AppendTextColumn('ID', width=40)
         self.data_list.AppendTextColumn('artist', width=170)
-
-        renderer = DRCustomRenderer(mode=dv.DATAVIEW_CELL_INERT)
-        col = dv.DataViewColumn("Title", renderer, 2, width=260)
-        col.Alignment = wx.ALIGN_LEFT
-        self.data_list.AppendColumn(col)
-
+        self.data_list.AppendTextColumn('Title', width=260)
         self.data_list.AppendTextColumn(u'Статус', width=80)
 
         for item in self.data:
