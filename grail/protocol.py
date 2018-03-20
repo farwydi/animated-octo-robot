@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import hashlib
+
 from Crypto.Cipher import AES
 
 
@@ -32,9 +34,15 @@ class GrailProtocol(object):
         cipher = AES.new(key, AES.MODE_EAX)
 
         with open(login + ".grail", "wb") as grail:
-            raw = header + "\n\n" + "\n".join(body)
+            hash_prev = hashlib.sha1()
+            hash_prev.update(header.encode("ascii"))
 
-            grail_protected, tag = cipher.encrypt_and_digest(raw.encode())
+            raw_body = GrailProtocol.pack_body(body)
+            raw_body = "\n" + raw_body if len(raw_body) > 0 else ""
+
+            raw = header + "\n\n" + ";" + hash_prev.hexdigest() + raw_body
+
+            grail_protected, tag = cipher.encrypt_and_digest(raw.encode("ascii"))
 
             for wd in (cipher.nonce, tag, grail_protected):
                 grail.write(wd)
@@ -59,11 +67,25 @@ class GrailProtocol(object):
         header_raw, body = grail.split("\n\n")
         header = dict()
         for h_r in header_raw.split("\n"):
-            hh = h_r.split(";")
-            header.update({hh[0]: hh[1]})
+            title, value = h_r.split(";")
+            header.update({title: value})
 
-        return header, body.split("\n")
+        body = body.split("\n")
+
+        for i, b in enumerate(body):
+            base64_diff, prev_hash = b.split(";")
+            body[i] = (base64_diff, prev_hash)
+
+        return header, body
 
     @staticmethod
     def pack_header(header):
         return f"VERSION;{header['VERSION']}\nALGORITHM;{header['ALGORITHM']}"
+
+    @staticmethod
+    def pack_body(body):
+        for i, b in enumerate(body):
+            base64_diff, prev_hash = b
+            body[i] = base64_diff + ";" + prev_hash
+
+        return "\n".join(body)

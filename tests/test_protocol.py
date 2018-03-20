@@ -1,3 +1,4 @@
+import hashlib
 import os.path
 import random
 import string
@@ -47,13 +48,15 @@ class TestProtocol(unittest.TestCase):
 
         # Попытка декодировать файл.
         r = GrailProtocol.unlock_grail(login, key)
-        self.assertEqual(r, GrailProtocol.HEADER+"\n\n")
+        hash_prev = hashlib.sha1()
+        hash_prev.update(GrailProtocol.HEADER.encode("ascii"))
+        self.assertEqual(r, GrailProtocol.HEADER + "\n\n;" + hash_prev.hexdigest())
 
         # Проверка целостности файла.
         r_header, r_body = GrailProtocol.parse_grail(r)
         self.assertEqual(r_header['VERSION'], GrailProtocol.VERSION_GRAIL)
         self.assertEqual(r_header['ALGORITHM'], GrailProtocol.HASH_ALGORITHM)
-        self.assertEqual(r_body, [''])
+        self.assertEqual(r_body, [('', hash_prev.hexdigest())])
 
         # Удаление временного файла.
         os.unlink(login + ".grail")

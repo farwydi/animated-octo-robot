@@ -2,8 +2,10 @@ VERSION;1
 ALGORITHM;SHA1
 # CREATE;1215120515
 # AUTHOR;DEX
+...
 
-{base64 diff}
-{base64 diff}
-{base64 diff}
-{base64 diff}
+;{header hash}
+{base64 diff};{up hash + diff hash}
+{base64 diff};{up hash + diff hash}
+{base64 diff};{up hash + diff hash}
+...
