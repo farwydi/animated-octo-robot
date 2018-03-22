@@ -33,7 +33,7 @@ class MainFrameLogic(MainFrame):
 
         self.push_row(self.grail.get_header_hash())
 
-        for _, hash in self.grail.body:
+        for _, hash in self.grail.__blockchain:
             self.push_row(hash)
 
         self.grail_text_ctrl.SetValue(self.grail.get())
@@ -65,13 +65,17 @@ class MainFrameLogic(MainFrame):
         self.commit_btn.SetLabelText(f"Commit ({self._change_counter})")
 
     def selected(self, event):
-        pass
+        self._selected = int(self.data_list.GetItemText(event.Index))
+
+        self.grail_text_ctrl.SetValue(self.grail.get(self._selected))
+
+        print(self.data_list.GetItemText(self._selected))
 
     def commit(self, event):
         try:
             self.grail.update(self.grail_text_ctrl.GetValue())
 
-            diff, hash_str = self.grail.body[-1]
+            diff, hash_str = self.grail.__blockchain[-1]
 
             id = self.push_row(hash_str)
 
@@ -96,8 +100,9 @@ class MainFrameLogic(MainFrame):
     def push_row(self, item):
         self.data.append(item)
 
-        index = self.data_list.InsertItem(self.data_list.GetItemCount(), item)
-        # self.data_list.
+        index = self.data_list.GetItemCount()
+        index = self.data_list.InsertItem(self.data_list.GetItemCount(), str(index))
+        self.data_list.SetItem(index, 1, item)
 
         return index
 

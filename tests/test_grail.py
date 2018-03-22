@@ -12,25 +12,6 @@ def gen_random_string(N=10):
 
 
 class TestGrail(unittest.TestCase):
-    def test_grail(self):
-        # Получаем случайное имя для файла.
-        login = next(tempfile._get_candidate_names())
-        key = gen_random_string(16)
-
-        g = Grail(tempfile.gettempdir())
-        g.create(login, key)
-        g.insert(r"чвапвап\t\nasdsd")
-        g.save()
-
-        g = Grail(tempfile.gettempdir())
-        g.open(login, key)
-        g.insert(r"чвапвап\t\nasdsd")
-        g.save()
-
-        g = Grail(tempfile.gettempdir())
-        g.open(login, key)
-
-        os.unlink(os.path.join(tempfile.gettempdir(), (login + ".grail")))
 
     def test_grail_2(self):
         # Получаем случайное имя для файла.
@@ -56,6 +37,13 @@ From wicked puns and stupid jokes to anvils that drop on your head."""
         g.update(text2)
 
         self.assertTrue(g.valid())
+
+        self.assertEqual(g.get(), text2)
+
+        g.save()
+
+        g = Grail(tempfile.gettempdir())
+        g.open(login, key)
 
         self.assertEqual(g.get(), text2)
 
