@@ -29,7 +29,7 @@ I'm quite adept at funny gags, comedic theory I have read,
 From wicked puns and stupid jokes to anvils that drop on your head."""
 
         g = Grail(tempfile.gettempdir())
-        g.create(login, key)
+        g.open(login, key)
 
         self.assertTrue(os.path.exists(os.path.join(tempfile.gettempdir(), (login + ".grail"))))
 
@@ -41,8 +41,6 @@ From wicked puns and stupid jokes to anvils that drop on your head."""
         self.assertEqual(g.get(), text2)
 
         g.save()
-
-        g = Grail(tempfile.gettempdir())
         g.open(login, key)
 
         self.assertEqual(g.get(), text2)

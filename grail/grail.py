@@ -15,9 +15,10 @@ class Grail(object):
         self.__last_grail = ""
         self.__block_chain = []
         self.__protocol = GrailProtocol(default_path)
-        self.__path = ""
         self.__prev_hash = None
         self.__header_hash = None
+        self.__key = None
+        self.__login = ""
 
     @staticmethod
     def __encrypt_str(x: str) -> bytes:
@@ -65,29 +66,43 @@ class Grail(object):
         # Добавляем индексацию.
         self.__block_chain.append((record, self.__prev_hash))
 
-    def create(self, login: str, key: str):
+    def close(self):
+        if self.__init:
+            self.save()
+            self.__init = False
+            self.__key = None
+            self.__patches.clear()
+
+    def save(self, force=True):
         """
-        Физическое создание нового файл Grail и его инициализация.
+
+        :param force:
+        :return:
         """
-        # Проверка занятости файл.
-        if os.path.exists(self.__protocol.return_path(login)):
-            raise GrailException("File already exists")
+        self.__is_open()
+        self.__is_valid()
 
-        # Физическое создание файл Grail.
-        self.__protocol.create(login, key)
+        file = self.__protocol.return_path(self.__login)
 
-        # Попытка открыть ново созданный файл.
-        self.open(login, key)
+        if force and os.path.exists(file):
+            os.unlink(file)
 
-    def open(self, login: str, key: str):
+        self.__protocol.create(self.__login, self.__key, self.__algorithm, self.__block_chain)
+
+    def open(self, login: str, password: str):
         """
         Попытка инициализировать Grail из файла.
         """
+        self.close()
+
+        self.__key = self.__protocol.gen_password_key(password)
+
         # Проверка занятости файл.
         if not os.path.exists(self.__protocol.return_path(login)):
-            raise GrailException("File already exists")
+            # Физическое создание файл Grail.
+            self.__protocol.create(login, self.__key)
 
-        self.__algorithm, self.__header_hash, self.__block_chain = self.__protocol.open(login, key)
+        self.__algorithm, self.__header_hash, self.__block_chain = self.__protocol.open(login, self.__key)
 
         if len(self.__block_chain) > 0:
             _, self.__prev_hash = self.__block_chain[-1]
@@ -189,16 +204,10 @@ class Grail(object):
             raise ValueError()
 
         try:
-            record, _ = self.__block_chain[idx]
+            record, = self.__block_chain[idx]
 
             diff = base64.b64decode(record)
             return diff.decode('utf-8')
 
         except IndexError as e:
             raise ValueError(e)
-
-    def save(self, force=True):
-        self.__is_open()
-        self.__is_valid()
-
-        self.__protocol.save(force)
