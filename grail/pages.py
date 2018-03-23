@@ -9,7 +9,6 @@
 
 import wx
 import wx.xrc
-import wx.aui
 
 ###########################################################################
 ## Class LoginPage
@@ -108,58 +107,78 @@ class MainFrame ( wx.Frame ):
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 		self.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_3DLIGHT ) )
 		
-		bSizer11 = wx.BoxSizer( wx.HORIZONTAL )
+		bSizer11 = wx.BoxSizer( wx.VERTICAL )
+		
+		bSizer14 = wx.BoxSizer( wx.HORIZONTAL )
 		
 		bSizer12 = wx.BoxSizer( wx.VERTICAL )
 		
-		self.data_list = wx.ListCtrl( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LC_REPORT )
-		bSizer12.Add( self.data_list, 1, wx.ALL|wx.EXPAND, 5 )
-		
-		bSizer111 = wx.BoxSizer( wx.HORIZONTAL )
-		
-		self.push_btn = wx.Button( self, wx.ID_ANY, u"Push (0)", wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer111.Add( self.push_btn, 0, 0, 5 )
+		self.data_list = wx.ListCtrl( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( 400,-1 ), wx.LC_REPORT )
+		bSizer12.Add( self.data_list, 1, wx.EXPAND|wx.TOP|wx.BOTTOM|wx.LEFT, 5 )
 		
 		
-		bSizer12.Add( bSizer111, 0, wx.ALL, 5 )
-		
-		
-		bSizer11.Add( bSizer12, 1, wx.EXPAND, 5 )
+		bSizer14.Add( bSizer12, 1, wx.EXPAND, 5 )
 		
 		bSizer13 = wx.BoxSizer( wx.VERTICAL )
 		
-		self.m_auinotebook1 = wx.aui.AuiNotebook( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( 600,-1 ), wx.aui.AUI_NB_BOTTOM )
-		self.m_panel2 = wx.Panel( self.m_auinotebook1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		self.m_notebook1 = wx.Notebook( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( 900,-1 ), 0|wx.NO_BORDER )
+		self.m_notebook1.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_3DLIGHT ) )
+		
+		self.m_panel4 = wx.Panel( self.m_notebook1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer17 = wx.BoxSizer( wx.VERTICAL )
 		
-		self.commit_btn = wx.Button( self.m_panel2, wx.ID_ANY, u"Commit (0)", wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer17.Add( self.commit_btn, 0, wx.ALL, 5 )
-		
-		self.grail_text_ctrl = wx.TextCtrl( self.m_panel2, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_MULTILINE )
-		bSizer17.Add( self.grail_text_ctrl, 1, wx.EXPAND|wx.BOTTOM|wx.RIGHT|wx.LEFT, 5 )
+		self.grail_text_ctrl = wx.TextCtrl( self.m_panel4, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_MULTILINE )
+		bSizer17.Add( self.grail_text_ctrl, 1, wx.EXPAND, 5 )
 		
 		
-		self.m_panel2.SetSizer( bSizer17 )
-		self.m_panel2.Layout()
-		bSizer17.Fit( self.m_panel2 )
-		self.m_auinotebook1.AddPage( self.m_panel2, u"Grail", False, wx.NullBitmap )
-		self.m_panel3 = wx.Panel( self.m_auinotebook1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		self.m_panel4.SetSizer( bSizer17 )
+		self.m_panel4.Layout()
+		bSizer17.Fit( self.m_panel4 )
+		self.m_notebook1.AddPage( self.m_panel4, u"Grail", False )
+		self.m_panel5 = wx.Panel( self.m_notebook1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_panel5.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_WINDOW ) )
+		
 		bSizer19 = wx.BoxSizer( wx.VERTICAL )
 		
-		self.diff_text = wx.StaticText( self.m_panel3, wx.ID_ANY, u"MyLabel", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.diff_text.Wrap( -1 )
-		bSizer19.Add( self.diff_text, 0, wx.ALL, 5 )
+		self.diff_text = wx.TextCtrl( self.m_panel5, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_MULTILINE|wx.TE_READONLY )
+		bSizer19.Add( self.diff_text, 1, wx.EXPAND, 5 )
 		
 		
-		self.m_panel3.SetSizer( bSizer19 )
-		self.m_panel3.Layout()
-		bSizer19.Fit( self.m_panel3 )
-		self.m_auinotebook1.AddPage( self.m_panel3, u"Diff", False, wx.NullBitmap )
+		self.m_panel5.SetSizer( bSizer19 )
+		self.m_panel5.Layout()
+		bSizer19.Fit( self.m_panel5 )
+		self.m_notebook1.AddPage( self.m_panel5, u"Diff", False )
 		
-		bSizer13.Add( self.m_auinotebook1, 1, wx.EXPAND |wx.ALL, 5 )
+		bSizer13.Add( self.m_notebook1, 1, wx.EXPAND|wx.ALL, 5 )
 		
 		
-		bSizer11.Add( bSizer13, 1, wx.EXPAND, 5 )
+		bSizer14.Add( bSizer13, 1, wx.EXPAND, 5 )
+		
+		
+		bSizer11.Add( bSizer14, 1, wx.EXPAND, 5 )
+		
+		bSizer111 = wx.BoxSizer( wx.HORIZONTAL )
+		
+		bSizer16 = wx.BoxSizer( wx.VERTICAL )
+		
+		bSizer16.SetMinSize( wx.Size( 400,-1 ) ) 
+		self.push_btn = wx.Button( self, wx.ID_ANY, u"Push (0)", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer16.Add( self.push_btn, 0, wx.ALIGN_CENTER_VERTICAL, 5 )
+		
+		
+		bSizer111.Add( bSizer16, 1, wx.EXPAND, 5 )
+		
+		bSizer171 = wx.BoxSizer( wx.VERTICAL )
+		
+		bSizer171.SetMinSize( wx.Size( 900,-1 ) ) 
+		self.commit_btn = wx.Button( self, wx.ID_ANY, u"Commit (0)", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer171.Add( self.commit_btn, 0, 0, 5 )
+		
+		
+		bSizer111.Add( bSizer171, 1, wx.EXPAND|wx.LEFT, 5 )
+		
+		
+		bSizer11.Add( bSizer111, 0, wx.ALL|wx.EXPAND, 5 )
 		
 		
 		self.SetSizer( bSizer11 )
@@ -170,9 +189,9 @@ class MainFrame ( wx.Frame ):
 		
 		# Connect Events
 		self.data_list.Bind( wx.EVT_LIST_ITEM_SELECTED, self.selected )
+		self.grail_text_ctrl.Bind( wx.EVT_TEXT, self.grail_update )
 		self.push_btn.Bind( wx.EVT_BUTTON, self.push )
 		self.commit_btn.Bind( wx.EVT_BUTTON, self.commit )
-		self.grail_text_ctrl.Bind( wx.EVT_TEXT, self.grail_update )
 	
 	def __del__( self ):
 		pass
@@ -182,13 +201,13 @@ class MainFrame ( wx.Frame ):
 	def selected( self, event ):
 		event.Skip()
 	
+	def grail_update( self, event ):
+		event.Skip()
+	
 	def push( self, event ):
 		event.Skip()
 	
 	def commit( self, event ):
-		event.Skip()
-	
-	def grail_update( self, event ):
 		event.Skip()
 	
 

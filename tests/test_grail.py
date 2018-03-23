@@ -31,7 +31,9 @@ From wicked puns and stupid jokes to anvils that drop on your head."""
         g = Grail(tempfile.gettempdir())
         g.open(login, key)
 
-        self.assertTrue(os.path.exists(os.path.join(tempfile.gettempdir(), (login + ".grail"))))
+        grail_file = g.get_grail_file()
+
+        self.assertTrue(os.path.exists(grail_file))
 
         g.update(text1)
         g.update(text2)
@@ -45,4 +47,6 @@ From wicked puns and stupid jokes to anvils that drop on your head."""
 
         self.assertEqual(g.get(), text2)
 
-        os.unlink(os.path.join(tempfile.gettempdir(), (login + ".grail")))
+        g.destroy()
+
+        # self.assertFalse(os.path.exists(grail_file))

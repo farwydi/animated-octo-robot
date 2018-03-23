@@ -1,26 +1,22 @@
 # -*- coding: utf-8 -*-
 
-import os.path
-
 import wx
 
-import grail
+from grail import Grail
 from pages import LoginPage, MainFrame
 from protocol import GrailProtocol, GrailException
 
 
 class MainFrameLogic(MainFrame):
 
-    def __init__(self, grail_login, grail_key):
+    def __init__(self, login, password):
         super().__init__(None)
 
-        self.login = grail_login
-        self.key = grail_key
+        # self.m_notebook1.SetBackgroundColour(wx.NullColour)
 
-        self.grail = grail.Grail()
-        self.grail.open(self.login, self.key)
+        self.grail = Grail()
+        self.grail.open(login, password)
 
-        self.data = []
         self._change_counter = 0
         self._push_counter = 0
 
@@ -33,13 +29,16 @@ class MainFrameLogic(MainFrame):
 
         self.push_row(self.grail.get_header_hash())
 
-        for _, hash in self.grail.__blockchain:
-            self.push_row(hash)
+        for chain in self.grail.get_hash_list():
+            self.push_row(chain)
 
         self.grail_text_ctrl.SetValue(self.grail.get())
 
-        self._selected = -1
-        self.diff_text.SetLabel(self.grail.get_diff(self._selected))
+        self._selected = 0
+        try:
+            self.diff_text.SetLabel(self.grail.get_diff(self._selected))
+        except ValueError:
+            pass
 
     def grail_update(self, e):
         diff = e.GetString()
@@ -67,17 +66,16 @@ class MainFrameLogic(MainFrame):
     def selected(self, event):
         self._selected = int(self.data_list.GetItemText(event.Index))
 
-        self.grail_text_ctrl.SetValue(self.grail.get(self._selected))
-
-        print(self.data_list.GetItemText(self._selected))
+        self.grail_text_ctrl.SetValue(self.grail.get(self._selected + 1))
+        self.diff_text.SetLabel(self.grail.get_diff(self._selected))
 
     def commit(self, event):
         try:
             self.grail.update(self.grail_text_ctrl.GetValue())
 
-            diff, hash_str = self.grail.__blockchain[-1]
+            chain = self.grail.get_last_hash()
 
-            id = self.push_row(hash_str)
+            id = self.push_row(chain)
 
             self.status_bar.SetStatusText(f'Запись #{id} добавлена, ожидается подтверждение клиентом.')
 
@@ -98,11 +96,9 @@ class MainFrameLogic(MainFrame):
         self.push_btn.SetLabelText("Push (0)")
 
     def push_row(self, item):
-        self.data.append(item)
-
         index = self.data_list.GetItemCount()
         index = self.data_list.InsertItem(self.data_list.GetItemCount(), str(index))
-        self.data_list.SetItem(index, 1, item)
+        self.data_list.SetItem(index, 1, item.hex())
 
         return index
 
@@ -126,6 +122,8 @@ class LoginPageLogic(LoginPage):
         self.page = None
         self.page_login()
 
+        self.__protocol = GrailProtocol()
+
     def on_reg(self, event):
         if self.page == 1:
             # PAGE CREATE
@@ -141,43 +139,33 @@ class LoginPageLogic(LoginPage):
         self.status_bar.SetStatusText(wx.EmptyString)
         if self.page == 1:
             # PAGE CREATE
-            pswd = self.password_field.GetValue()
-            lgn = self.login_field.GetValue()
+            password = self.password_field.GetValue()
+            login = self.login_field.GetValue()
 
-            if len(pswd) == 0 and len(lgn) == 0:
+            if len(password) == 0 or len(login) == 0:
                 self.status_bar.SetStatusText(self.M_ERROR_FIELD)
             else:
-                try:
-                    GrailProtocol.create_new_grail(lgn, pswd)
+                form = MainFrameLogic(login, password)
+                form.Show()
 
-                    wnd = MainFrameLogic(lgn, pswd)
-                    wnd.Show()
-
-                    self.Close()
-                except GrailException as gx:
-                    self.status_bar.SetStatusText(str(gx))
+                self.Close()
 
         elif self.page == 2:
             # PAGE LOGIN
 
-            lgn = self.login_field.GetValue()
-            pswd = self.password_field.GetValue()
+            login = self.login_field.GetValue()
+            password = self.password_field.GetValue()
 
-            if len(pswd) == 0 and len(lgn) == 0:
+            if len(password) == 0 and len(login) == 0:
                 self.status_bar.SetStatusText(self.M_ERROR_FIELD)
             else:
-                if os.path.exists(lgn + '.grail'):
-                    try:
-                        GrailProtocol.unlock_grail(lgn, pswd)
-
-                        wnd = MainFrameLogic(lgn, pswd)
-                        wnd.Show()
-
-                        self.Close()
-                    except ValueError:
-                        self.status_bar.SetStatusText(self.M_ERROR_PWD)
+                if not self.__protocol.check(login, password):
+                    self.status_bar.SetStatusText(self.M_ERROR_PWD)
                 else:
-                    self.status_bar.SetStatusText(self.M_ERROR_REG)
+                    form = MainFrameLogic(login, password)
+                    form.Show()
+
+                    self.Close()
 
     def passwd_no_eq(self):
         pass

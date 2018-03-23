@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import hashlib
 from io import BytesIO
-from os.path import join
+from os.path import join, exists
 from struct import unpack, pack
 
 from Cryptodome.Cipher import AES
@@ -27,12 +27,28 @@ class GrailProtocol(object):
     def gen_password_key(password: str):
         return hashlib.sha256(password.encode("utf-8")).digest()
 
+    def check(self, login: str, password: str):
+        if not exists(self.return_path(login)):
+            return False
+
+        with open(self.return_path(login), "rb") as grail:
+            nonce, tag, grail_extract = [grail.read(x) for x in (16, 16, -1)]
+
+            cipher = AES.new(self.gen_password_key(password), AES.MODE_EAX, nonce)
+            try:
+                cipher.decrypt_and_verify(grail_extract, tag)
+            except ValueError:
+                return False
+
+            return True
+
     def open(self, login: str, key: bytes):
         """
 
         :param key:
         :param login:
         :return:
+        :rtype (str, bytes, list)
         """
         with open(self.return_path(login), "rb") as grail:
             nonce, tag, grail_extract = [grail.read(x) for x in (16, 16, -1)]
@@ -64,6 +80,8 @@ class GrailProtocol(object):
                     block_chain.append((record, chain))
 
                 return algorithm, header_hash.digest(), block_chain
+
+        raise GrailException()
 
     def create(self, login: str, key: bytes, algorithm=None, block_chain=None):
         """

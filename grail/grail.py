@@ -20,6 +20,9 @@ class Grail(object):
         self.__key = None
         self.__login = ""
 
+    def __format__(self, format_spec):
+        return self.get()
+
     @staticmethod
     def __encrypt_str(x: str) -> bytes:
         """Кодируем входную строку в base64.
@@ -66,12 +69,58 @@ class Grail(object):
         # Добавляем индексацию.
         self.__block_chain.append((record, self.__prev_hash))
 
+    def __destroy(self):
+        grail = self.__protocol.return_path(self.__login)
+
+        if os.path.exists(grail):
+            os.remove(grail)
+
+    def get_header_hash(self):
+        self.__is_open()
+        self.__is_valid()
+
+        return self.__header_hash
+
+    def get_last_hash(self) -> bytes:
+        self.__is_open()
+        self.__is_valid()
+
+        if len(self.__block_chain) > 0:
+            _, chain = self.__block_chain[-1]
+            return chain
+
+        return self.__header_hash
+
+    def get_hash_list(self) -> list:
+        self.__is_open()
+        self.__is_valid()
+
+        result = []
+
+        for _, chain in self.__block_chain:
+            result.append(chain)
+
+        return result
+
     def close(self):
         if self.__init:
             self.save()
             self.__init = False
+            self.__login = ""
             self.__key = None
+            self.__last_grail = ""
             self.__patches.clear()
+
+    def get_grail_file(self):
+        self.__is_open()
+
+        return self.__protocol.return_path(self.__login)
+
+    def destroy(self, close=True):
+        self.__is_open()
+
+        self.__destroy()
+        self.close()
 
     def save(self, force=True):
         """
@@ -82,10 +131,8 @@ class Grail(object):
         self.__is_open()
         self.__is_valid()
 
-        file = self.__protocol.return_path(self.__login)
-
-        if force and os.path.exists(file):
-            os.unlink(file)
+        if force:
+            self.__destroy()
 
         self.__protocol.create(self.__login, self.__key, self.__algorithm, self.__block_chain)
 
@@ -96,16 +143,25 @@ class Grail(object):
         self.close()
 
         self.__key = self.__protocol.gen_password_key(password)
+        self.__login = login
 
         # Проверка занятости файл.
-        if not os.path.exists(self.__protocol.return_path(login)):
+        if not os.path.exists(self.__protocol.return_path(self.__login)):
             # Физическое создание файл Grail.
-            self.__protocol.create(login, self.__key)
+            self.__protocol.create(self.__login, self.__key)
 
-        self.__algorithm, self.__header_hash, self.__block_chain = self.__protocol.open(login, self.__key)
+        self.__algorithm, self.__header_hash, self.__block_chain = self.__protocol.open(self.__login, self.__key)
 
         if len(self.__block_chain) > 0:
             _, self.__prev_hash = self.__block_chain[-1]
+
+            # Инициализация модуля diff_match_patch.
+            dmp = dmp_module.diff_match_patch()
+
+            for record, chain in self.__block_chain:
+                patch = base64.b64decode(record).decode("utf-8")
+
+                self.__patches.append(dmp.patch_fromText(patch))
         else:
             self.__prev_hash = self.__header_hash
 
@@ -173,6 +229,9 @@ class Grail(object):
         self.__is_open()
         self.__is_valid()
 
+        if patch_count == 0:
+            return ""
+
         # Инициализация модуля diff_match_patch.
         dmp = dmp_module.diff_match_patch()
 
@@ -203,11 +262,11 @@ class Grail(object):
         if idx < 0:
             raise ValueError()
 
-        try:
-            record, = self.__block_chain[idx]
+        # Инициализация модуля diff_match_patch.
+        dmp = dmp_module.diff_match_patch()
 
-            diff = base64.b64decode(record)
-            return diff.decode('utf-8')
+        try:
+            return dmp.patch_toText(self.__patches[idx])
 
         except IndexError as e:
             raise ValueError(e)
