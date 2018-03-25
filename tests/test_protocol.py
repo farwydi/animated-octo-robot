@@ -13,7 +13,13 @@ def gen_random_string(N=10):
 
 class TestProtocol(unittest.TestCase):
 
-    pass
+    def test_check_file_not_find(self):
+        protocol = GrailProtocol()
+
+        self.assertFalse(protocol.check("file not find", ""))
+
+        with self.assertRaises(FileNotFoundError):
+            protocol.read("file not find", b"")
 
     # def test_pack(self):
     #     # Проверка упаковки команды.

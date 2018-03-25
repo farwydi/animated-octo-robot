@@ -4,7 +4,7 @@ import wx
 
 from grail import Grail
 from pages import LoginPage, MainFrame
-from protocol import GrailProtocol, GrailException
+from protocol import GrailProtocol
 
 
 class MainFrameLogic(MainFrame):
@@ -70,23 +70,20 @@ class MainFrameLogic(MainFrame):
         self.diff_text.SetLabel(self.grail.get_diff(self._selected))
 
     def commit(self, event):
-        try:
-            self.grail.update(self.grail_text_ctrl.GetValue())
+        self.grail.update(self.grail_text_ctrl.GetValue())
 
-            chain = self.grail.get_last_hash()
+        chain = self.grail.get_last_hash()
 
-            id = self.push_row(chain)
+        id = self.push_row(chain)
 
-            self.status_bar.SetStatusText(f'Запись #{id} добавлена, ожидается подтверждение клиентом.')
+        self.status_bar.SetStatusText(f'Запись #{id} добавлена, ожидается подтверждение клиентом.')
 
-            self.commit_btn.Disable()
-            self.commit_btn.SetLabelText("Commit (0)")
+        self.commit_btn.Disable()
+        self.commit_btn.SetLabelText("Commit (0)")
 
-            self._push_counter += 1
-            self.push_btn.Enable()
-            self.push_btn.SetLabelText(f"Push ({self._push_counter})")
-        except GrailException as gp:
-            self.status_bar.SetStatusText(str(gp))
+        self._push_counter += 1
+        self.push_btn.Enable()
+        self.push_btn.SetLabelText(f"Push ({self._push_counter})")
 
     def push(self, event):
         self.grail.save()

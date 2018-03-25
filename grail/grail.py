@@ -1,10 +1,18 @@
-import base64
-import hashlib
-import os.path
+from base64 import b64encode, b64decode
+from hashlib import new
+from os.path import exists
+from os import remove
+from diff_match_patch import diff_match_patch as dmp_module
 
-import diff_match_patch as dmp_module
+from protocol import GrailProtocol
 
-from protocol import GrailProtocol, GrailException
+
+class GrailIsNotValid(Exception):
+    pass
+
+
+class GrailIsNotInit(Exception):
+    pass
 
 
 class Grail(object):
@@ -24,28 +32,37 @@ class Grail(object):
         return self.get()
 
     @staticmethod
-    def __encrypt_str(x: str) -> bytes:
+    def __encoding_str(x: str) -> bytes:
         """Кодируем входную строку в base64.
 
         :param x: base str.
         :type x: str
         :return: encrypted string
         """
-        return base64.b64encode(x.encode('utf-8'))
+        return b64encode(x.encode('utf-8'))
+
+    @staticmethod
+    def __decoding_str(x: bytes) -> str:
+        """
+
+        :param x:
+        :return:
+        """
+        return b64decode(x).decode("utf-8")
 
     def __is_open(self):
         """
         Проверка Grail на истинность.
         """
         if not self.__init:
-            raise GrailException("First you need to open the Grail")
+            raise GrailIsNotInit()
 
     def __is_valid(self):
         """
         Проверка Grail на истинность.
         """
         if not self.valid():
-            raise GrailException("Grail is not valid")
+            raise GrailIsNotValid()
 
     def __insert(self, raw_str_diff: str):
         """
@@ -56,10 +73,10 @@ class Grail(object):
         :param raw_str_diff: Строка, которую нужно внести в Grail
         """
         # Создаём объект хэша на основе предыдущего.
-        next_hash = hashlib.new(self.__algorithm, self.__prev_hash)
+        next_hash = new(self.__algorithm, self.__prev_hash)
 
         # Кодируем входную строку в base64 и дополняем хэш.
-        record = self.__encrypt_str(raw_str_diff)
+        record = self.__encoding_str(raw_str_diff)
         next_hash.update(record)
 
         # Обновляем последний хэш.
@@ -70,18 +87,30 @@ class Grail(object):
         self.__block_chain.append((record, self.__prev_hash))
 
     def __destroy(self):
+        """
+
+        :return:
+        """
         grail = self.__protocol.return_path(self.__login)
 
-        if os.path.exists(grail):
-            os.remove(grail)
+        if exists(grail):
+            remove(grail)
 
-    def get_header_hash(self):
+    def get_header_hash(self) -> bytes:
+        """
+
+        :return:
+        """
         self.__is_open()
         self.__is_valid()
 
         return self.__header_hash
 
     def get_last_hash(self) -> bytes:
+        """
+
+        :return:
+        """
         self.__is_open()
         self.__is_valid()
 
@@ -112,6 +141,11 @@ class Grail(object):
             self.__patches.clear()
 
     def get_grail_file(self):
+        """
+
+        :raise Gra
+        :return:
+        """
         self.__is_open()
 
         return self.__protocol.return_path(self.__login)
@@ -134,11 +168,17 @@ class Grail(object):
         if force:
             self.__destroy()
 
-        self.__protocol.create(self.__login, self.__key, self.__algorithm, self.__block_chain)
+        self.__protocol.write(self.__login, self.__key, self.__algorithm, self.__block_chain)
 
     def open(self, login: str, password: str):
         """
         Попытка инициализировать Grail из файла.
+
+        :param login:
+        :param password:
+        :raise GrailIsNotValid:
+        :raise ValueError:
+        :return:
         """
         self.close()
 
@@ -146,20 +186,22 @@ class Grail(object):
         self.__login = login
 
         # Проверка занятости файл.
-        if not os.path.exists(self.__protocol.return_path(self.__login)):
+        if not exists(self.__protocol.return_path(self.__login)):
             # Физическое создание файл Grail.
-            self.__protocol.create(self.__login, self.__key)
+            self.__protocol.write(self.__login, self.__key)
 
-        self.__algorithm, self.__header_hash, self.__block_chain = self.__protocol.open(self.__login, self.__key)
+        self.__algorithm, self.__header_hash, self.__block_chain = self.__protocol.read(self.__login, self.__key)
+
+        self.__is_valid()
 
         if len(self.__block_chain) > 0:
             _, self.__prev_hash = self.__block_chain[-1]
 
             # Инициализация модуля diff_match_patch.
-            dmp = dmp_module.diff_match_patch()
+            dmp = dmp_module()
 
-            for record, chain in self.__block_chain:
-                patch = base64.b64decode(record).decode("utf-8")
+            for record, _ in self.__block_chain:
+                patch = self.__decoding_str(record)
 
                 self.__patches.append(dmp.patch_fromText(patch))
         else:
@@ -178,7 +220,7 @@ class Grail(object):
 
         for record, chain in self.__block_chain:
             # Инициализация следующего хэша.
-            next_hash = hashlib.new(self.__algorithm)
+            next_hash = new(self.__algorithm)
             next_hash.update(prev)
             next_hash.update(record)
 
@@ -195,14 +237,14 @@ class Grail(object):
         Обновляет Grail добовляя изменения.
 
         :param new_grail: Новая форма Grail.
-        :raise GrailException: Возникает, если Grail был не инициализирован.
-        :raise GrailException: Возникает, если Grail повреждён или не валиден.
+        :raise GrailIsNotInit: Возникает, если Grail был не инициализирован.
+        :raise GrailIsNotValid: Возникает, если Grail повреждён или не валиден.
         """
         self.__is_open()
         self.__is_valid()
 
         # Инициализация модуля diff_match_patch.
-        dmp = dmp_module.diff_match_patch()
+        dmp = dmp_module()
 
         # Создания патча.
         patch = dmp.patch_make(self.__last_grail, new_grail)
@@ -222,8 +264,8 @@ class Grail(object):
 
         :param patch_count: Количество патчей, которые нужно применить.
         :type patch_count: int
-        :raise GrailException: Возникает, если Grail был не инициализирован.
-        :raise GrailException: Возникает, если Grail повреждён или не валиден.
+        :raise GrailIsNotInit: Возникает, если Grail был не инициализирован.
+        :raise GrailIsNotValid: Возникает, если Grail повреждён или не валиден.
         :return: Grail.
         """
         self.__is_open()
@@ -233,7 +275,7 @@ class Grail(object):
             return ""
 
         # Инициализация модуля diff_match_patch.
-        dmp = dmp_module.diff_match_patch()
+        dmp = dmp_module()
 
         # Начало с нуля.
         grail = ''
@@ -260,10 +302,10 @@ class Grail(object):
         :return: Патч в текстовом формате.
         """
         if idx < 0:
-            raise ValueError()
+            raise ValueError(f"{idx} < 0")
 
         # Инициализация модуля diff_match_patch.
-        dmp = dmp_module.diff_match_patch()
+        dmp = dmp_module()
 
         try:
             return dmp.patch_toText(self.__patches[idx])
