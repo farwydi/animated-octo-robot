@@ -1,3 +1,0 @@
-diff-match-patch
-wxpython
-pycryptodomex
