@@ -72,9 +72,15 @@ class MainFrameLogic(MainFrame):
     def commit(self, event):
         self.grail.update(self.grail_text_ctrl.GetValue())
 
+<<<<<<< Updated upstream
         chain = self.grail.get_last_hash()
 
         id = self.push_row(chain)
+=======
+            chain = self.grail.get_last_hash()
+
+            id = self.push_row(chain)
+>>>>>>> Stashed changes
 
         self.status_bar.SetStatusText(f'Запись #{id} добавлена, ожидается подтверждение клиентом.')
 

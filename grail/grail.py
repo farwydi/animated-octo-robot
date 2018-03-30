@@ -87,6 +87,7 @@ class Grail(object):
         self.__block_chain.append((record, self.__prev_hash))
 
     def __destroy(self):
+<<<<<<< Updated upstream
         """
 
         :return:
@@ -101,16 +102,27 @@ class Grail(object):
 
         :return:
         """
+=======
+        grail = self.__protocol.return_path(self.__login)
+
+        if os.path.exists(grail):
+            os.remove(grail)
+
+    def get_header_hash(self):
+>>>>>>> Stashed changes
         self.__is_open()
         self.__is_valid()
 
         return self.__header_hash
 
     def get_last_hash(self) -> bytes:
+<<<<<<< Updated upstream
         """
 
         :return:
         """
+=======
+>>>>>>> Stashed changes
         self.__is_open()
         self.__is_valid()
 
@@ -141,11 +153,14 @@ class Grail(object):
             self.__patches.clear()
 
     def get_grail_file(self):
+<<<<<<< Updated upstream
         """
 
         :raise Gra
         :return:
         """
+=======
+>>>>>>> Stashed changes
         self.__is_open()
 
         return self.__protocol.return_path(self.__login)
@@ -186,6 +201,7 @@ class Grail(object):
         self.__login = login
 
         # Проверка занятости файл.
+<<<<<<< Updated upstream
         if not exists(self.__protocol.return_path(self.__login)):
             # Физическое создание файл Grail.
             self.__protocol.write(self.__login, self.__key)
@@ -193,15 +209,29 @@ class Grail(object):
         self.__algorithm, self.__header_hash, self.__block_chain = self.__protocol.read(self.__login, self.__key)
 
         self.__is_valid()
+=======
+        if not os.path.exists(self.__protocol.return_path(self.__login)):
+            # Физическое создание файл Grail.
+            self.__protocol.create(self.__login, self.__key)
+
+        self.__algorithm, self.__header_hash, self.__block_chain = self.__protocol.open(self.__login, self.__key)
+>>>>>>> Stashed changes
 
         if len(self.__block_chain) > 0:
             _, self.__prev_hash = self.__block_chain[-1]
 
             # Инициализация модуля diff_match_patch.
+<<<<<<< Updated upstream
             dmp = dmp_module()
 
             for record, _ in self.__block_chain:
                 patch = self.__decoding_str(record)
+=======
+            dmp = dmp_module.diff_match_patch()
+
+            for record, chain in self.__block_chain:
+                patch = base64.b64decode(record).decode("utf-8")
+>>>>>>> Stashed changes
 
                 self.__patches.append(dmp.patch_fromText(patch))
         else:
@@ -305,7 +335,11 @@ class Grail(object):
             raise ValueError(f"{idx} < 0")
 
         # Инициализация модуля diff_match_patch.
+<<<<<<< Updated upstream
         dmp = dmp_module()
+=======
+        dmp = dmp_module.diff_match_patch()
+>>>>>>> Stashed changes
 
         try:
             return dmp.patch_toText(self.__patches[idx])

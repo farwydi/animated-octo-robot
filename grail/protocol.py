@@ -52,8 +52,27 @@ class GrailProtocol(object):
         """
         Gen sha256 hash by password str.
 
+<<<<<<< Updated upstream
         :param password:
         :return:
+=======
+    def check(self, login: str, password: str):
+        if not exists(self.return_path(login)):
+            return False
+
+        with open(self.return_path(login), "rb") as grail:
+            nonce, tag, grail_extract = [grail.read(x) for x in (16, 16, -1)]
+
+            cipher = AES.new(self.gen_password_key(password), AES.MODE_EAX, nonce)
+            try:
+                cipher.decrypt_and_verify(grail_extract, tag)
+            except ValueError:
+                return False
+
+            return True
+
+    def open(self, login: str, key: bytes):
+>>>>>>> Stashed changes
         """
         return sha256(password.encode("utf-8")).digest()
 
@@ -64,6 +83,7 @@ class GrailProtocol(object):
         :param login:
         :param password:
         :return:
+        :rtype (str, bytes, list)
         """
         try:
             self.__read(login, self.gen_password_key(password))
@@ -110,7 +130,13 @@ class GrailProtocol(object):
 
             return algorithm, header_hash.digest(), block_chain
 
+<<<<<<< Updated upstream
     def write(self, login: str, key: bytes, algorithm=None, block_chain=None):
+=======
+        raise GrailException()
+
+    def create(self, login: str, key: bytes, algorithm=None, block_chain=None):
+>>>>>>> Stashed changes
         """
         Write block chain to Grail file.
 
